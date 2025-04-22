@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { hashPassword, comparePassword } from "../utils/password";
 import { validateRegisterForm, validateLoginForm } from "../utils/validation";
-import { validateToken } from "../utils/jwt";
 import db from "../utils/db.config";
 import { getJwt } from "../utils/jwt";
 import { v4 as uuidv4 } from "uuid";
@@ -13,13 +12,17 @@ interface UserInfo {
   password: string;
 }
 
-const checkUser = async (email: string): Promise<UserInfo> => {
+const checkUser = async (email: string): Promise<UserInfo | null> => {
   const result = await db.query("SELECT * FROM users WHERE email = $1", [
     email,
   ]);
-  const userInfo = result.rows[0] as UserInfo;
-  userInfo.userId = result.rows[0].user_id;
-  return userInfo;
+  if (result.rows.length > 0) {
+    const userInfo = result.rows[0] as UserInfo;
+    userInfo.userId = result.rows[0].user_id;
+    return userInfo;
+  } else {
+    return null;
+  }
 };
 
 export const registerHandler = async (req: Request, res: Response) => {
@@ -30,12 +33,12 @@ export const registerHandler = async (req: Request, res: Response) => {
     const userId = uuidv4();
     const { email, name, password } = data;
 
-    const userInfo: UserInfo = await checkUser(email);
+    const userInfo: UserInfo | null = await checkUser(email);
     if (userInfo) throw new Error("Email is already exist");
 
     const hashedPassword = await hashPassword(password);
     const token = getJwt({ userId, name });
-
+   
     await db.query(
       "INSERT INTO users(user_id, email, password, name) VALUES ($1, $2, $3, $4)",
       [userId, email, hashedPassword, name]
@@ -58,7 +61,8 @@ export const loginHandler = async (req: Request, res: Response) => {
     validateLoginForm(data);
 
     const { email, password } = data;
-    const userInfo: UserInfo = await checkUser(email);
+    const userInfo: UserInfo | null = await checkUser(email);
+    if (!userInfo) throw new Error("User not found");
 
     const checkPassword = await comparePassword(password, userInfo.password);
     if (!checkPassword) throw new Error("password does not match");

@@ -1,15 +1,18 @@
-import { NextFunction, Request, Response } from "express"
-import { validateToken } from "../utils/jwt"
+import { NextFunction, Request, Response } from "express";
+import { validateToken } from "../utils/jwt";
 
-export const checkAuth = (req: Request, res: Response, next: NextFunction) =>{
-    try{
-        const authToken = req.headers.authorization;
-        const convertToken:string = authToken?.split(" ")[1] || "";
-      
-        const decoded = validateToken(convertToken)
-        next()
-    } catch(error){
+export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    console.log('active middleware ')
+    const authToken: string = req.headers.authorization?.split(" ")[1] || "";
+    if (authToken === "") throw new Error("User not login");
 
-    }
-
+    const decoded = validateToken(authToken);
+    console.log("Auth");
+    req.user = decoded;
+    next();
+  } catch (error) {
+    console.log(error)
+    res.status(401).json({ message: "Unauthorized: User not logged in" });
 }
+};
