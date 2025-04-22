@@ -3,12 +3,10 @@ import { validateToken } from "../utils/jwt";
 
 export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
   try {
-    console.log('active middleware ')
     const authToken: string = req.headers.authorization?.split(" ")[1] || "";
     if (authToken === "") throw new Error("User not login");
 
     const decoded = validateToken(authToken);
-    console.log("Auth");
     req.user = decoded;
     next();
   } catch (error) {

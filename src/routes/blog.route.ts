@@ -1,4 +1,5 @@
 import express from "express";
+import { checkAuth } from "../middleware/middleware";
 import {
   createBlogHandler,
   getBlogsHandler,
@@ -6,7 +7,6 @@ import {
   deleteBlogHandler,
   updateBlogHandler
 } from "../controllers/blog.controller";
-import { checkAuth } from "../middleware/middleware";
 
 const router = express.Router();
 

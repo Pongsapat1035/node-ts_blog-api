@@ -38,7 +38,7 @@ export const registerHandler = async (req: Request, res: Response) => {
 
     const hashedPassword = await hashPassword(password);
     const token = getJwt({ userId, name });
-   
+
     await db.query(
       "INSERT INTO users(user_id, email, password, name) VALUES ($1, $2, $3, $4)",
       [userId, email, hashedPassword, name]
@@ -81,16 +81,3 @@ export const loginHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const checkToken = (req: Request, res: Response) => {
-  try {
-    const authToken = req.headers.authorization;
-
-    const convertToken = authToken?.split(" ")[1];
-    console.log(convertToken);
-
-    // const decode = validateToken()
-  } catch (error) {
-    console.log(error);
-    res.status(400);
-  }
-};
